@@ -3,6 +3,7 @@ using GradingSytemApi.Entities;
 using GradingSytemApi.Services;
 using GradingSytemApi.Services.Implements;
 using GradingSytemApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -10,11 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace GradingSytemApi.Extentions
@@ -50,7 +54,8 @@ namespace GradingSytemApi.Extentions
                 options.User.RequireUniqueEmail = false;
 
 
-            }).AddEntityFrameworkStores<ApiDbContext>();
+            }).AddEntityFrameworkStores<ApiDbContext>()
+            .AddDefaultTokenProviders();
 
             return services;
         }
@@ -105,6 +110,9 @@ namespace GradingSytemApi.Extentions
         {
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<ICommentService, CommentService>();
+            services.AddScoped<IPostService, PostService>();
+            services.AddScoped<ICourseService, CourseService>();
 
             return services;
         }
@@ -116,6 +124,49 @@ namespace GradingSytemApi.Extentions
             services.AddScoped<UserResolverService>();
             services.AddScoped<EmailService>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddJwt(this IServiceCollection services)
+        {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(cfg =>
+                {
+                    cfg.RequireHttpsMetadata = false;
+                    cfg.SaveToken = true;
+                    cfg.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        //ValidAudiences = new List<string>()
+                        //{
+                        //    Startup.Configuration.GetValue<string>("JWTToken:JwtAudienceId")
+                        //},
+                        ValidIssuer = Settings.JWT_ISSUER,
+                        ValidAudience = Settings.JWT_ISSUER,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        RequireExpirationTime = false,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration.GetValue<string>("JWTToken:JwtKey"))),
+                        ClockSkew = TimeSpan.Zero // remove delay of token when expire,
+                    };
+                    cfg.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                            {
+                                context.Response.Headers.Add("Token-Expired", "true");
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
             return services;
         }
     }

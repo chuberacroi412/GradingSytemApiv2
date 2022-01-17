@@ -26,10 +26,14 @@ namespace GradingSytemApi.Entities
         public string CreatedBy { get; set; }
         public string UpdatedBy { get; set; }
         public virtual ICollection<AccountRoleMap> AccountRoleMaps { get; set; }
+        public virtual ICollection<Score> Scores { get; set; }
+        public virtual ICollection<AccountCourseMap> AccountCourseMaps { get; set; }
+        public virtual ICollection<AccountScoreMap> AccountScoreMaps { get; set; }
 
         public Account()
         {
             this.AccountRoleMaps = new List<AccountRoleMap>();
+            this.AccountCourseMaps = new List<AccountCourseMap>();
         }
     }
 }

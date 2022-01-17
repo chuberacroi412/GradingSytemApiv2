@@ -65,5 +65,18 @@ namespace GradingSytemApi.Services
                 await SendEmail(user.Email, fullName, subject, body);
             }
         }
+
+        public async Task SendResetPassword(string userId, string password)
+        {
+            Account user = await _userManager.FindByIdAsync(userId);
+            string fullName = $"{user.FirstName} {user.LastName}";
+            string subject = "New password";
+            string body = $"Bienvenue {fullName} <br/> Your new password is {password}";
+
+            if (true || IsValidEmail(user.Email))
+            {
+                await SendEmail(user.Email, fullName, subject, body);
+            }
+        }
     }
 }

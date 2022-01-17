@@ -21,4 +21,14 @@ namespace GradingSytemApi.DTOs
             this.ParentId = module.ParentModuleId;
         }
     }
+
+    public class RoleModuleMapModel : ModuleModel
+    {
+        public bool Active { get; set; }
+
+        public RoleModuleMapModel(Module module, bool active) : base(module)
+        {
+            this.Active = active;
+        }
+    }
 }

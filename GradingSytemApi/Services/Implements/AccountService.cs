@@ -176,7 +176,13 @@ namespace GradingSytemApi.Services.Implements
             }
             else
             {
-                actionResult.Add(errors, new AccountModel(checkAccount.First().Value));
+                var roleId = _dbContext.UserRoles.FirstOrDefault(x => x.UserId == checkAccount.First().Value.Id)?.RoleId;
+                if(roleId != null)
+                {
+                    var role = _dbContext.Roles.FirstOrDefault(x => !x.Deleted && x.Id == roleId);
+                    actionResult.Add(errors, new AccountModel(checkAccount.First().Value, role));
+                }
+            
             }
 
             return actionResult;
@@ -224,10 +230,10 @@ namespace GradingSytemApi.Services.Implements
             account.UpdatedBy = _userResolverService.GetUser();
         }
 
-        public async Task<Dictionary<ErrorModel, AccountLookupModel>> UpdateByToken(UpdateProfileModel model)
+        public async Task<Dictionary<ErrorModel, AccountModel>> UpdateByToken(UpdateProfileModel model)
         {
             // Init values
-            var actionResult = new Dictionary<ErrorModel, AccountLookupModel>();
+            var actionResult = new Dictionary<ErrorModel, AccountModel>();
             ErrorModel errors = new ErrorModel();
 
             // Find user by token
@@ -238,7 +244,7 @@ namespace GradingSytemApi.Services.Implements
             if(!result.First().Key.IsEmpty)
             {
                 result.First().Key.Errors.ForEach(error => errors.Add(error));
-                actionResult.Add(errors, new AccountLookupModel());
+                actionResult.Add(errors, new AccountModel());
 
                 return actionResult;
             }
@@ -249,7 +255,7 @@ namespace GradingSytemApi.Services.Implements
             if(!modelErrors.IsEmpty)
             {
                 modelErrors.Errors.ForEach(error => errors.Add(error));
-                actionResult.Add(errors, new AccountLookupModel());
+                actionResult.Add(errors, new AccountModel());
 
                 return actionResult;
             }
@@ -259,7 +265,6 @@ namespace GradingSytemApi.Services.Implements
 
             // Update password
             var changePasswordResult = await _userManager.ChangePasswordAsync(result.First().Value, model.CurrentPassword ,model.NewPassword);
-
             if(!changePasswordResult.Succeeded)
             {
                 foreach(var error in changePasswordResult.Errors)
@@ -272,11 +277,43 @@ namespace GradingSytemApi.Services.Implements
                 result.First().Value.IsFirstLogin = true;
                 await _userManager.UpdateAsync(result.First().Value);
 
+                var roleMap = _dbContext.UserRoles.FirstOrDefault(x => x.UserId == result.First().Value.Id);
+                var role = _dbContext.Roles.FirstOrDefault(x => !x.Deleted && x.Id == roleMap.RoleId);
+
                 // Build return model
-                actionResult.Add(errors, new AccountLookupModel(result.First().Value));
+                actionResult.Add(errors, new AccountModel(result.First().Value, role));
             }
 
             return actionResult;
+        }
+
+        public async Task<ErrorModel> ResetPassword(string email)
+        {
+            var errors = new ErrorModel();
+            var account = _dbContext.Users.FirstOrDefault(x => !x.Deleted && x.Email == email);
+
+
+            if (account == null)
+            {
+                errors.Add("User is not found"); 
+            }
+            else
+            {
+                try
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(account);
+                    var password = Settings.DEFAULT_ADMIN_PASSWORD;
+
+                    var resetResults = await _userManager.ResetPasswordAsync(account, token, password);
+
+                    await _emailService.SendResetPassword(account.Id, password);
+                }
+                catch(Exception e)
+                {
+                    errors.Add("Server internal errors");
+                }
+            }
+            return errors;
         }
     }
 }

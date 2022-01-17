@@ -13,6 +13,7 @@ namespace GradingSytemApi.Entities
         public string Tile { get; set; }
         public string Content { get; set; }
         public PostType Type { get; set; }
+        public ReportStatus ReportStatus { get; set; }
         public DateTime? DueDate { get; set; }
         public Guid CourseId { get; set; }
         public virtual Course Course { get; set; }

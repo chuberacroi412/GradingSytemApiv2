@@ -24,9 +24,12 @@ namespace GradingSytemApi.Common.Helpers
 
                 if(claims.Count() > 0)
                 {
-                    var nameId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+                    var nameId = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
 
-                    if(nameId != null)
+                    if(nameId == null)
+                        nameId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+
+                    if (nameId != null)
                     {
                         return nameId.Value;
                     }

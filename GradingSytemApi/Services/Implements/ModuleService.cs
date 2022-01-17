@@ -147,6 +147,13 @@ namespace GradingSytemApi.Services.Implements
             return pagination;
         }
 
+        public IEnumerable<RoleModuleMapModel> GetModuleOfRole(Guid roleId, ref ErrorModel errors)
+        {
+            var modulesMap = _dbContext.RoleModuleMaps.Where(x => !x.Deleted && x.RoleId == roleId.ToString()).Select(x => new { x.Module, x.Active }).ToList();
 
+            var modules = modulesMap.Select(x => new RoleModuleMapModel(x.Module, x.Active)).ToList();
+
+            return modules;
+        }
     }
 }

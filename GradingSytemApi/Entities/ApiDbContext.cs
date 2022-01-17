@@ -32,9 +32,11 @@ namespace GradingSytemApi.Entities
         public DbSet<Module> Modules { get; set; }
         public DbSet<RoleModuleMap> RoleModuleMaps { get; set; }
         public DbSet<Course> Courses { get; set; }
-        public DbSet<Score> Scrores { get; set; }
+        public DbSet<Score> Scores { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<AccountCourseMap> AccountCourseMaps { get; set; }
+        public DbSet<AccountScoreMap> AccountScoreMaps { get; set; }
 
         public override int SaveChanges()
         {

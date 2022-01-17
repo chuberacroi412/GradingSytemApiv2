@@ -80,7 +80,8 @@ namespace GradingSytemApi.Controllers
 
                             return Ok(new
                             {
-                                Token = JWTHelper.GenerateJwtToken(user.UserName, user.Id, "Admin")
+                                Token = JWTHelper.GenerateJwtToken(user.UserName, user.Id, "Admin"),
+                                UserId = user.Id
                             });
 
                         }

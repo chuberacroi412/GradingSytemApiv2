@@ -40,11 +40,9 @@ namespace GradingSytemApi.DTOs
             this.Birthday = account.Birthday;
             this.TotalScore = account.TotalScore;
             this.CreatedDate = account.CreatedDate;
-            this.UpdatedDate = account.UpdatedDate;
-            this.Role = new RoleLookupModel(account.AccountRoleMaps.FirstOrDefault()?.Role);
         }
 
-        public AccountModel(Account account, Role role)
+        public AccountModel(Account account, Role? role)
         {
             this.Id = account.Id;
             this.Code = account.Code;
@@ -59,7 +57,9 @@ namespace GradingSytemApi.DTOs
             this.TotalScore = account.TotalScore;
             this.CreatedDate = account.CreatedDate;
             this.UpdatedDate = account.UpdatedDate;
-            this.Role = new RoleLookupModel(role);
+
+            if (role != null)
+                this.Role = new RoleLookupModel(role);
         }
     }
 
@@ -74,7 +74,7 @@ namespace GradingSytemApi.DTOs
         public string Code { get; set; }
         [Required(ErrorMessage = "Account type is requried")]
         public CreateUserType Type { get; set; }
-        public DateTime BirthDay { get; set; }
+        public DateTime? BirthDay { get; set; }
 
         public Account ParseToEntity()
         {
@@ -84,7 +84,7 @@ namespace GradingSytemApi.DTOs
                 LastName = this.LastName,
                 Email = this.Email,
                 Code = this.Code,
-                Birthday = this.BirthDay
+                Birthday = this.BirthDay ?? DateTime.MinValue
             };
 
             return entity;
@@ -113,7 +113,10 @@ namespace GradingSytemApi.DTOs
         public string NewPassword { get; set; }
         public string ConfirmNewPassword { get; set; }
     }
-
+    public class ResetPasswordModel
+    {
+        public string Email { get; set; }
+    }
     public class AccountLookupModel
     {
         public string Id { get; set; }

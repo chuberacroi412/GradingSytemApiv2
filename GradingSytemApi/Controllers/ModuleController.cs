@@ -1,5 +1,6 @@
 ﻿using GradingSytemApi.DTOs;
 using GradingSytemApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,6 +12,7 @@ namespace GradingSytemApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class ModuleController : BaseController
     {
         private readonly IModuleService _service;
@@ -64,6 +66,23 @@ namespace GradingSytemApi.Controllers
             if (errors.IsEmpty)
             {
                 return Ok();
+            }
+            else
+            {
+                return BadRequest(errors);
+            }
+        }
+
+        [HttpGet("RoleModuleMap/{Id}")]
+        public IActionResult GetModulesOfRole(Guid Id)
+        {
+            ErrorModel errors = new ErrorModel();
+
+            var result = _service.GetModuleOfRole(Id, ref errors);
+
+            if(errors.IsEmpty)
+            {
+                return Ok(result);
             }
             else
             {

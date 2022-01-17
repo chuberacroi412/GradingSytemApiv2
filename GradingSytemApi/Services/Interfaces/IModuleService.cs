@@ -10,6 +10,8 @@ namespace GradingSytemApi.Services.Interfaces
     {
         ModuleModel GetById(int id, ref ErrorModel errors);
         PaginationModel<ModuleModel> GetModules(PaginationModuleRequest req);
+
+        IEnumerable<RoleModuleMapModel> GetModuleOfRole(Guid roleId, ref ErrorModel errors);
         void ChangeRoleModuleMapState(Guid Id, bool state, ref ErrorModel errors);
     }
 }

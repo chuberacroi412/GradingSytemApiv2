@@ -32,9 +32,15 @@ namespace GradingSytemApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(config => config.AddPolicy("CorsPolicy", builder => builder.AllowAnyHeader()
+                                                                                        .AllowAnyOrigin()
+                                                                                        .AllowAnyMethod()
+                                                                                        .SetIsOriginAllowed(origin => true)));
+
             services.AddControllers();
             services.AddCustomDbContext();
             services.AddCustomIdentity();
+            services.AddJwt();
             services.AddCustomSwagger();
             services.AddCustomErrorLocalization();
             services.RegisterCustomService();
@@ -49,8 +55,9 @@ namespace GradingSytemApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors("CorsPolicy");
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

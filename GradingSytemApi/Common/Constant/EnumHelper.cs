@@ -8,7 +8,8 @@ namespace GradingSytemApi.Common.Constant
     public enum CreateUserType
     {
         Student = 0,
-        Teacher = 1
+        Teacher = 1,
+        Admin = 3
     }
 
     public enum PaginationType
@@ -30,5 +31,18 @@ namespace GradingSytemApi.Common.Constant
         Exercise = 1,
         Report = 2,
         Lesson = 3
+    }
+
+    public enum ReportStatus
+    {
+        Pending = 0,
+        Accept = 1,
+        Reject = 2
+    }
+
+    public enum ClassRole
+    {
+        Student = 0,
+        Teacher = 1
     }
 }

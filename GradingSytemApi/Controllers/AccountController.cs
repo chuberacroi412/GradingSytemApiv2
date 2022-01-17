@@ -1,5 +1,6 @@
 ﻿using GradingSytemApi.DTOs;
 using GradingSytemApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace GradingSytemApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class AccountController : BaseController
     {
         private readonly IAccountService _service;
@@ -20,7 +22,8 @@ namespace GradingSytemApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateAccountModel model)
+        [AllowAnonymous]
+        public async Task<IActionResult> Create([FromBody]CreateAccountModel model)
         {
             ErrorModel errors = new ErrorModel();
             if(!ModelState.IsValid)
@@ -79,7 +82,7 @@ namespace GradingSytemApi.Controllers
         //}
 
         [HttpPut]
-        public async Task<IActionResult> UpdateByToken(UpdateProfileModel model)
+        public async Task<IActionResult> UpdateByToken([FromBody]UpdateProfileModel model)
         {
             ErrorModel errors = new ErrorModel();
 
@@ -92,6 +95,24 @@ namespace GradingSytemApi.Controllers
             else
             {
                 return BadRequest(result.First().Key);
+            }
+        }
+
+        [HttpPut("ResetPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            ErrorModel errors = new ErrorModel();
+
+            errors = await _service.ResetPassword(model.Email);
+
+            if (errors.IsEmpty)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(errors);
             }
         }
 

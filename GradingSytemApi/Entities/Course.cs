@@ -14,7 +14,15 @@ namespace GradingSytemApi.Entities
         public DateTime YearStart { get; set; }
         public DateTime YearEnd { get; set; }
         public int Size { get; set; }
-        public virtual ICollection<Score> Scrores { get; set; }
+        public virtual ICollection<Score> Scores { get; set; }
         public virtual ICollection<Post> Posts { get; set; }
+        public virtual ICollection<AccountCourseMap> AccountCourseMaps { get; set; }
+
+        public Course()
+        {
+            this.Scores = new List<Score>();
+            this.Posts = new List<Post>();
+            this.AccountCourseMaps = new List<AccountCourseMap>();
+        }
     }
 }

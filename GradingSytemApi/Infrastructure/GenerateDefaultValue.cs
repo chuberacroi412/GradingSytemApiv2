@@ -25,6 +25,7 @@ namespace GradingSytemApi.Infrastructure
                 GenerateInitData(hostingEnvironment, apiConectionString);
                 await InitRoleModuleMapForSuperAdmin(serviceProvider);
                 await InitDefaultRoleAndRoleModule(serviceProvider);
+               
             }
             catch(Exception e)
             {
@@ -71,8 +72,10 @@ namespace GradingSytemApi.Infrastructure
         {
             await CreateRoles(servicePovider, Settings.DEFAULT_TEACHER_ROLE_NAME);
             await CreateRoles(servicePovider, Settings.DEFAULT_STUDENT_ROLE_NAME);
-            await CreateRoleModuleMap(servicePovider, Settings.DEFAULT_TEACHER_ROLE_NAME);
-            await CreateRoleModuleMap(servicePovider, Settings.DEFAULT_STUDENT_ROLE_NAME);
+            //await CreateRoleModuleMap(servicePovider, Settings.DEFAULT_TEACHER_ROLE_NAME);
+            //await CreateRoleModuleMap(servicePovider, Settings.DEFAULT_STUDENT_ROLE_NAME);
+            await InitRoleModuleMapForStudent(servicePovider);
+            await InitRoleModuleMapForTeacher(servicePovider);
         }
 
         private static async Task CreateRoles(IServiceProvider servicePovider, string roleName)
@@ -182,13 +185,97 @@ namespace GradingSytemApi.Infrastructure
             string roleName = Settings.DEFAULT_ADMIN_ROLE_NAME;
             var role = await roleManager.FindByNameAsync(roleName);
 
-            if(role != null)
+
+            if (role != null)
             {
-                role.RoleModuleMaps = dbContext.Modules.Where(x => !x.Deleted).Select(x => new RoleModuleMap()
+                // Init values
+                List<RoleModuleMap> map = new List<RoleModuleMap>();
+                var allModules = dbContext.Modules.Where(x => !x.Deleted).ToList();
+
+                // Get role existed
+                var roleModules = dbContext.RoleModuleMaps.Where(x => !x.Deleted && x.RoleId == role.Id).Select(x => x.Module).ToList();
+
+                allModules.Except(roleModules).ToList().ForEach(x =>
                 {
-                    Module = x,
-                    Active = true
-                }).ToList();
+                    map.Add(new RoleModuleMap()
+                    {
+                        Role = role,
+                        Module = x,
+                        Active = true
+                    });
+                });
+
+                dbContext.RoleModuleMaps.AddRange(map);
+                dbContext.SaveChanges();
+            }
+        }
+
+        private static async Task InitRoleModuleMapForStudent(IServiceProvider serviceProvider)
+        {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
+            var dbContext = serviceProvider.GetRequiredService<ApiDbContext>();
+
+            string roleName = Settings.DEFAULT_STUDENT_ROLE_NAME;
+            var role = await roleManager.FindByNameAsync(roleName);
+
+
+            if (role != null)
+            {
+                // Init values
+                List<RoleModuleMap> map = new List<RoleModuleMap>();
+                var allModules = dbContext.Modules.Where(x => !x.Deleted).ToList();
+
+                // Get role existed
+                var roleModules = dbContext.RoleModuleMaps.Where(x => !x.Deleted && x.RoleId == role.Id).Select(x => x.Module).ToList();
+
+                allModules.Except(roleModules).ToList().ForEach(x =>
+                {
+                    map.Add(new RoleModuleMap()
+                    {
+                        Role = role,
+                        Module = x,
+                        Active = (x.Name == "Account" || x.Name == "Workspace") ? true : false
+                    });
+                });
+
+                dbContext.RoleModuleMaps.AddRange(map);
+                dbContext.SaveChanges();
+
+            }
+
+        }
+
+        private static async Task InitRoleModuleMapForTeacher(IServiceProvider serviceProvider)
+        {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
+            var dbContext = serviceProvider.GetRequiredService<ApiDbContext>();
+
+            string roleName = Settings.DEFAULT_TEACHER_ROLE_NAME;
+            var role = await roleManager.FindByNameAsync(roleName);
+
+
+            if (role != null)
+            {
+                // Init values
+                List<RoleModuleMap> map = new List<RoleModuleMap>();
+                var allModules = dbContext.Modules.Where(x => !x.Deleted).ToList();
+
+                // Get role existed
+                var roleModules = dbContext.RoleModuleMaps.Where(x => !x.Deleted && x.RoleId == role.Id).Select(x => x.Module).ToList();
+
+                allModules.Except(roleModules).ToList().ForEach(x =>
+                {
+                    map.Add(new RoleModuleMap()
+                    {
+                        Role = role,
+                        Module = x,
+                        Active = (x.Name == "Account" || x.Name == "Workspace" || x.Name == "Course") ? true : false
+                    });
+                });
+
+                dbContext.RoleModuleMaps.AddRange(map);
+                dbContext.SaveChanges();
+
             }
         }
     }
